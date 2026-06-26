@@ -23,8 +23,10 @@ git remote add upstream git@github.com:Infra-Project-Team-4/hi.git
 git remote -v
 ```
 
+```
 origin = 내 저장소 (내 GitHub 원격 저장소)
 upstream = 원본 저장소 (타인의 저장소)
+```
 
 #### 작업 시 명령어
 
