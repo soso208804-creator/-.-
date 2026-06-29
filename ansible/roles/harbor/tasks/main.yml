@@ -1,0 +1,21 @@
+---
+- name: Install harbor dependencies
+  apt:
+    name:
+      - curl
+      - wget
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+
+- name: Create harbor directory
+  file:
+    path: /opt/harbor
+    state: directory
+
+
+- name: Copy harbor config
+  copy:
+    src: ../../../../harbor/harbor.yml
+    dest: /opt/harbor/harbor.yml
