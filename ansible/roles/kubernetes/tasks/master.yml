@@ -1,0 +1,22 @@
+---
+- name: kubeadm init
+
+  shell: |
+    kubeadm init \
+    --pod-network-cidr=10.244.0.0/16
+
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+
+- name: create kube config
+
+  shell: |
+    mkdir -p $HOME/.kube
+    cp /etc/kubernetes/admin.conf $HOME/.kube/config
+
+
+- name: install calico
+
+  shell: |
+    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml

@@ -1,0 +1,33 @@
+---
+- name: disable swap
+  shell: swapoff -a
+
+
+- name: install dependencies
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+
+
+- name: add kubernetes repo key
+  shell: |
+    curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg \
+    https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+
+- name: add kubernetes repo
+  apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main
+
+
+- name: install kube packages
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present

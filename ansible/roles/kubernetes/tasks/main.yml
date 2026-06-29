@@ -1,0 +1,10 @@
+---
+- import_tasks: install.yml
+
+
+- import_tasks: master.yml
+  when: inventory_hostname in groups['k8s-master']
+
+
+- import_tasks: worker.yml
+  when: inventory_hostname in groups['k8s-worker']

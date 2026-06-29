@@ -1,0 +1,22 @@
+---
+- name: Server Init
+  hosts: all
+  become: yes
+  roles:
+    - docker
+
+
+- name: Kubernetes Install
+  hosts:
+    - k8s-master
+    - k8s-worker
+  become: yes
+  roles:
+    - kubernetes
+
+
+- name: Harbor Setup
+  hosts: harbor
+  become: yes
+  roles:
+    - harbor
