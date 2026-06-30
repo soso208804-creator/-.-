@@ -94,7 +94,7 @@ ansible-infra/
         └── Cluster 환경 구축
 ```
 
-**site.yml 코드 예시**
+**playbook/site.yml 코드 예시**
 
 ```
 전체 인프라 구축의 실행 진입점으로, 서버 환경에 필요한 Role을 순서대로 호출하여
@@ -228,13 +228,6 @@ Database Role은 서비스별 Task를 분리하여 PostgreSQL, Redis, Kafka 환�
   import_tasks: kafka.yml
 ```
 
-<br>
-
-**playbook 코드 예시**
-
-```
-d
-```
 <br>
 
 **inbentory 코드 예시**
