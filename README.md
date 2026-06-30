@@ -38,7 +38,8 @@ Git Repository 구성 → .gitlab-ci.yml 작성 → Pipeline Stage 구성 → Bu
 
 
 # 네트워크 구성 (Logical Architecture)
-(네트워크 이미지)
+![Uploading image.png…]()
+
 
 
 # Ansible 자동화 구성
