@@ -38,7 +38,7 @@ Git Repository 구성 → .gitlab-ci.yml 작성 → Pipeline Stage 구성 → Bu
 
 
 # 네트워크 구성 (Logical Architecture)
-<img width="840" height="859" alt="image" src="https://github.com/user-attachments/assets/66be3785-ec7d-4798-9867-0a1e1267e5e4" />
+<img width="40" height="60" alt="image" src="https://github.com/user-attachments/assets/66be3785-ec7d-4798-9867-0a1e1267e5e4" />
 
 
 
