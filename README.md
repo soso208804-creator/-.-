@@ -94,7 +94,9 @@ ansible-infra/
         └── Cluster 환경 구축
 ```
 **site.yml 코드 일부분**
+<br>
 **roles 코드 예시**
+<br>
 **playbook 코드 예시**
 
 # CI/CD Pipeline
