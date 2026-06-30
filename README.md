@@ -93,7 +93,7 @@ ansible-infra/
         ├── Worker Node Join
         └── Cluster 환경 구축
 ```
-**site.yml 코드 일부분**
+**site.yml 코드 예시**
 
 <br>
 
