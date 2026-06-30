@@ -245,8 +245,6 @@ d
 
 # CI/CD Pipeline
 
-GitLab CI/CD 동작 과정
-
 ```
 GitLab CI/CD 동작 과정
 GitLab CI/CD Pipeline을 통해 코드 변경 사항을 감지하고 자동으로 빌드 및 배포 과정을 수행합니다.
