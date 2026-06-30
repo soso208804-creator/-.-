@@ -64,7 +64,7 @@ Pfsense으로 적용한 프로토콜
 
 
 
-# Ansible 자동화 구성
+# Ansible 서버 자동화 구성
 
 
 
