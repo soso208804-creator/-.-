@@ -93,8 +93,9 @@ ansible-infra/
         ├── Worker Node Join
         └── Cluster 환경 구축
 ```
-
-
+**site.yml 코드 일부분**
+**roles 코드 예시**
+**playbook 코드 예시**
 
 # CI/CD Pipeline
 (GitLab Pipeline 이미지)
