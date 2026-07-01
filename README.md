@@ -39,6 +39,7 @@ Role 구성 → Inventory 작성 → 변수 설정 → Playbook 작성 → site.
 → 서버 자동 구축 완료
 ```
 <br>
+<br>
 
 깃랩 CI/CD 파이프라인 구축
 
