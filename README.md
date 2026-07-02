@@ -107,18 +107,41 @@ ansible-infra/
 
 ```
 ---
-**playbook/site.yml 코드 예시**
+**playbooks/site.yml 코드 예시**
 
 ```
 전체 인프라 구축의 실행 진입점으로, 서버 환경에 필요한 Role을 순서대로 호출하여
 Kubernetes, Harbor 등의 구성 작업을 자동 실행한다.
 DB는 사전에 구성해서 제외한다.
 
-- name: Harbor 서버 구성 
+순서
+ 1. GitLab 서버 구성
+ 2. GitLab Runner 구성
+ 3. Harbor 설치
+ 4. K8s 공통 설정 (containerd, swap, sysctl)
+ 5. K8s Master init
+ 6. K8s Worker join
+ 7. CI/CD 배포 테스트 -> build 테스트 까지 
+
+- name: GitLab 서버 구성 (10.1.201.127)
+  hosts: management
+  become: true
+  roles:
+    - gitlab
+
+- name: GitLab Runner 구성
+  hosts: management
+  become: true
+  roles:
+    - gitlab-runner
+
+
+- name: Harbor 서버 구성 (192.168.159.122)
   hosts: harbor
   become: true
   roles:
     - harbor
+
 
 - name: K8s 노드 공통 설정 (마스터+워커, containerd/swap/sysctl)
   hosts: k8s_cluster
@@ -126,13 +149,15 @@ DB는 사전에 구성해서 제외한다.
   roles:
     - common
 
+
 - name: K8s 마스터 노드 구성 (192.168.159.120)
   hosts: master
   become: true
   roles:
     - k8s-master
 
-- name: K8s 워커 노드 구성 및 클러스터 join 
+
+- name: K8s 워커 노드 구성 및 클러스터 join (192.168.159.121)
   hosts: worker
   become: true
   roles:
