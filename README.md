@@ -286,7 +286,6 @@ gitlab-runner Role은 배포의 파이프 라인을 형성한다.
 ```
 ---
 
----
 ```
 # roles/gitlab/tasks/main.yml
 
