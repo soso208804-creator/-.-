@@ -1,11 +1,11 @@
 ---
 # 실행: ansible-playbook -i inventory/hosts.ini site.yml
 #
-# 순서가 중요합니다:
-# 1. Harbor 먼저 설치 (워커/마스터가 Harbor 인증서를 신뢰해야 하므로)
+# 순서
+# 1. Harbor 먼저 설치 (워커/마스터가 Harbor 인증서를 신뢰해야 함)
 # 2. 마스터/워커 공통 설정 (containerd 등)
 # 3. 마스터 클러스터 init
-# 4. 워커 join (마스터 init이 끝난 뒤에만 가능)
+# 4. 워커 join (마스터 init이 끝난 뒤)
 
 - name: Harbor 서버 구성 (192.168.159.122)
   hosts: harbor
