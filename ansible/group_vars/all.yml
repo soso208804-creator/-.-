@@ -22,3 +22,6 @@ harbor_install_dir: "/opt/harbor"
 
 # containerd 
 containerd_version: "1.7.13"
+
+# git Lab URL
+gitlab_external_url: "http://10.1.201.127"

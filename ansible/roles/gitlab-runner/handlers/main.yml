@@ -1,0 +1,6 @@
+---
+# handlers file for roles/gitlab-runner
+- name: Restart GitLab Runner
+  systemd:
+    name: gitlab-runner
+    state: restarted

@@ -1,0 +1,31 @@
+---
+# tasks file for roles/gitlab-runner
+- name: Install GitLab Runner dependencies
+  apt:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg
+    state: present
+    update_cache: yes
+
+
+- name: Add GitLab Runner repository script
+  shell: |
+    curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | bash
+  args:
+    creates: /etc/apt/sources.list.d/runner_gitlab-runner.list
+
+
+- name: Install GitLab Runner
+  apt:
+    name: gitlab-runner
+    state: present
+    update_cache: yes
+
+
+- name: Enable GitLab Runner service
+  systemd:
+    name: gitlab-runner
+    enabled: yes
+    state: started

@@ -1,11 +1,26 @@
----
 # 실행: ansible-playbook -i inventory/hosts.ini site.yml
 #
 # 순서
-# 1. Harbor 먼저 설치 (워커/마스터가 Harbor 인증서를 신뢰해야 함)
-# 2. 마스터/워커 공통 설정 (containerd 등)
-# 3. 마스터 클러스터 init
-# 4. 워커 join (마스터 init이 끝난 뒤)
+# 0. GitLab 서버 구성
+# 1. GitLab Runner 구성
+# 2. Harbor 설치
+# 3. K8s 공통 설정 (containerd, swap, sysctl)
+# 4. K8s Master init
+# 5. K8s Worker join
+# 6. CI/CD 배포 테스트
+
+- name: GitLab 서버 구성 (10.1.201.127)
+  hosts: management
+  become: true
+  roles:
+    - gitlab
+
+- name: GitLab Runner 구성
+  hosts: management
+  become: true
+  roles:
+    - gitlab-runner
+
 
 - name: Harbor 서버 구성 (192.168.159.122)
   hosts: harbor
@@ -13,17 +28,20 @@
   roles:
     - harbor
 
+
 - name: K8s 노드 공통 설정 (마스터+워커, containerd/swap/sysctl)
   hosts: k8s_cluster
   become: true
   roles:
     - common
 
+
 - name: K8s 마스터 노드 구성 (192.168.159.120)
   hosts: master
   become: true
   roles:
     - k8s-master
+
 
 - name: K8s 워커 노드 구성 및 클러스터 join (192.168.159.121)
   hosts: worker
