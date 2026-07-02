@@ -79,28 +79,39 @@ Ansible은 Playbook을 실행하여 여러 Role을 순차적으로 호출하고,
 
 
 ```
-ansible-infra/
-├── ansible.cfg                
-├── inventory/                 
-│   └── hosts.ini
-├── group_vars/               
-│   └── all.yml
-│
-├── playbooks/                 
-│   ├── site.yml               
-│   ├── init-server.yml        
-│   ├── kubernetes-install.yml 
-│   ├── k8s-master-init.yml    
-│   ├── k8s-worker-join.yml    
-│   ├── deploy.yml             
-│   └── reset.yml              
-│
-└── roles/                     
-    ├── common/                
-    ├── database/              
-    ├── harbor/                
-    ├── k8s-master/            
-    └── k8s-worker/            
+├── ansible.cfg
+├── group_vars
+│   └── all.yml
+├── inventory
+│   └── hosts.ini
+├── playbooks
+│   ├── deploy.yml
+│   ├── gitlab-install.yml
+│   ├── init-server.yml
+│   ├── k8s-master-init.yml
+│   ├── k8s-worker-join.yml
+│   ├── kubernetes-install.yml
+│   ├── reset.yml
+│   └── site.yml
+└── roles
+    ├── common
+    │       └── main.yml
+    ├── database
+    │       ├── kafka.yml
+    │       ├── main.yml
+    │       ├── postgres.yml
+    │       └── redis.yml
+    ├── gitlab  
+    │  └── main.yml
+    ├── gitlab-runner
+    │   └── main.yml
+    ├── harbor
+    │       └── main.yml
+    │       └── harbor.yml.j2
+    ├── k8s-master
+    │       └── main.yml
+    └── k8s-worker
+            └── main.yml
 
 ```
 ---
