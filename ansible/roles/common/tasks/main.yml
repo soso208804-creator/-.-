@@ -1,5 +1,5 @@
 ---
-# ===== 1. 기존 클론 잔재 정리 (machine-id, hostname 재설정) =====
+# 1. 기존 클론 잔재 정리 (machine-id, hostname 재설정)
 - name: machine-id 초기화 (클론 VM 충돌 방지)
   block:
     - name: 기존 machine-id 확인
@@ -13,7 +13,7 @@
         systemd-machine-id-setup
       when: current_machine_id.stdout != ""
 
-# ===== 2. hostname 설정 =====
+# 2. hostname 설정 
 - name: hostname 설정
   hostname:
     name: "{{ inventory_hostname }}"
@@ -28,7 +28,7 @@
       {{ worker2_ip }} k8s-worker2
       {{ harbor_ip }} harbor.local
 
-# ===== 3. swap 비활성화 (K8s 필수 조건) =====
+# 3. swap 비활성화 (K8s 필수 조건) 
 - name: swap 비활성화
   command: swapoff -a
   changed_when: true
@@ -39,7 +39,7 @@
     regexp: '^([^#].*\sswap\s.*)$'
     replace: '# \1'
 
-# ===== 4. 커널 모듈 / 네트워크 파라미터 (K8s 필수) =====
+# 4. 커널 모듈 / 네트워크 파라미터 (K8s 필수) 
 - name: 필요한 커널 모듈 로드 설정
   copy:
     dest: /etc/modules-load.d/k8s.conf
@@ -69,7 +69,7 @@
   command: sysctl --system
   changed_when: true
 
-# ===== 5. containerd 설치 =====
+# 5. containerd 설치 
 - name: 필수 패키지 설치
   apt:
     name:
@@ -97,7 +97,7 @@
     content: "{{ containerd_default_config.stdout | regex_replace('SystemdCgroup = false', 'SystemdCgroup = true') }}"
   notify: restart containerd
 
-# ===== 6. Harbor insecure registry 등록 (HTTPS이지만 자체서명 인증서이므로 등록 필요) =====
+# 6. Harbor insecure registry 등록 (HTTPS이지만 자체서명 인증서 등록 필요)
 - name: containerd에 Harbor 자체서명 인증서 신뢰 설정 디렉토리 생성
   file:
     path: "/etc/containerd/certs.d/{{ harbor_ip }}"
