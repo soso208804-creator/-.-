@@ -80,38 +80,28 @@ Ansible은 Playbook을 실행하여 여러 Role을 순차적으로 호출하고,
 
 ```
 ansible-infra/
+├── ansible.cfg                
+├── inventory/                 
+│   └── hosts.ini
+├── group_vars/               
+│   └── all.yml
 │
-├── ansible.cfg
-│   └── Ansible 환경 설정
+├── playbooks/                 
+│   ├── site.yml               
+│   ├── init-server.yml        
+│   ├── kubernetes-install.yml 
+│   ├── k8s-master-init.yml    
+│   ├── k8s-worker-join.yml    
+│   ├── deploy.yml             
+│   └── reset.yml              
 │
-├── playbooks/
-│   ├── site.yml
-│   │   └── 전체 인프라 구축 실행
-│   │
-│   ├── init-server.yml
-│   │   └── 서버 초기 설정
-│   │
-│   ├── kubernetes-install.yml
-│   │   └── Kubernetes 설치
-│   │
-│   └── deploy.yml
-│       └── 서비스 배포
-│
-└── roles/
-    │
-    ├── database/
-    │   └── PostgreSQL / Redis / Kafka 구축
-    │
-    ├── docker/
-    │   └── Docker 환경 구성
-    │
-    ├── harbor/
-    │   └── Private Registry 구성
-    │
-    └── kubernetes/
-        ├── Master Node 구성
-        ├── Worker Node Join
-        └── Cluster 환경 구축
+└── roles/                     
+    ├── common/                
+    ├── database/              
+    ├── harbor/                
+    ├── k8s-master/            
+    └── k8s-worker/            
+
 ```
 ---
 **playbook/site.yml 코드 예시**
