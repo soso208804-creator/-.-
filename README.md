@@ -347,12 +347,13 @@ GitLab CI
   ↓
 Docker build
   ↓
-Harbor push
+Harbor push (저장소)
   ↓
 K8s deploy
 ```
 ---
-
+위와 같은 파이프 라인을 구성하기 위해 .gitlab-ci.yml 파일을 작성 하였다.
+위의 흐름처럼 프로젝트의 웹을 배포 한다.
 ```
 .gitlab-ci.yml 
 stages:
