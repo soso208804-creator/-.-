@@ -354,6 +354,12 @@ d
 
 # CI/CD Pipeline
 
+GitLab 서버와 GitLab Runner를 Ansible을 이용하여 자동화 방식으로 구축하였다.
+
+CI/CD 배포를 담당하는 GitLab Runner를 설치 및 등록하였으며,
+
+GitLab 서버는 http://10.1.201.127 환경으로 구성하였다.
+
 ```
 GitLab CI/CD 동작 과정
 GitLab CI/CD Pipeline을 통해 코드 변경 사항을 감지하고 자동으로 빌드 및 배포 과정을 수행한다.
