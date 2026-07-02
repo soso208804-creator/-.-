@@ -111,130 +111,129 @@ ansible-infra/
 Docker, Kubernetes, Harbor 등의 구성 작업을 자동 실행한다.
 DB는 사전에 구성해서 제외한다.
 
----
-- name: Server Init
-  hosts: all
-  become: yes
-  roles:
-    - docker
-
-
-- name: Kubernetes Install
-  hosts:
-    - k8s_master
-    - k8s_worker
-  become: yes
-  roles:
-    - kubernetes
-
-
-- name: Harbor Setup
+- name: Harbor 서버 구성 
   hosts: harbor
-  become: yes
+  become: true
   roles:
     - harbor
+
+- name: K8s 노드 공통 설정 (마스터+워커, containerd/swap/sysctl)
+  hosts: k8s_cluster
+  become: true
+  roles:
+    - common
+
+- name: K8s 마스터 노드 구성 (192.168.159.120)
+  hosts: master
+  become: true
+  roles:
+    - k8s-master
+
+- name: K8s 워커 노드 구성 및 클러스터 join 
+  hosts: worker
+  become: true
+  roles:
+    - k8s-worker
+
 ```
 ---
 
 **roles 코드 예시**
+
 ```
-# roles/kubernetes/tasks/main.yml
-Kubernetes Role의 main.yml은 설치 작업을 먼저 수행한 후,
-Inventory 그룹 정보를 기준으로 Master Node와 Worker Node 작업을 분리하여 실행한다.
-
+# roles/k8s-master/main.yml
+Master 구성하는 main.yml 파
 ---
-# Kubernetes 설치 작업 실행
-- import_tasks: install.yml
+# 1. K8s 컴포넌트 설치 및 버전 고정
+- name: Install K8s packages (kubeadm, kubelet, kubectl)
+  apt: name: [kubelet, kubeadm, kubectl]
 
+# 2. 기존 클러스터 흔적 및 네트워크 초기화 (충돌 방지)
+- name: Reset existing cluster configurations
+  command: kubeadm reset -f
 
-# Master Node 설정
-- import_tasks: master.yml
-  when: inventory_hostname in groups['k8s-master']
+# 3. 마스터 노드 초기화 및 클러스터 생성
+- name: Initialize K8s master node
+  command: kubeadm init --apiserver-advertise-address={{ master_ip }}
 
+# 4. 일반 사용자용 kubeconfig 설정
+- name: Configure kubeconfig for ansible_user
+  copy: src: /etc/kubernetes/admin.conf dest: ~/.kube/config
 
-# Worker Node 설정
-- import_tasks: worker.yml
-  when: inventory_hostname in groups['k8s-worker']
+# 5. Pod 네트워크(Calico CNI) 배포
+- name: Deploy Calico CNI network plugin
+  command: kubectl apply -f {{ calico_manifest_url }}
+
+# 6. Worker 노드 추가용 Join 명령어 생성 및 저장
+- name: Generate and save worker node join command
+  command: kubeadm token create --print-join-command
+
+# 7. 사설 Harbor 인증서 등록 디렉토리 생성
+- name: Create Harbor CA certificate directory
+  file: path: /usr/local/share/ca-certificates/harbor
+
 ```
 ---
+```
+# roles/k8s-master/main.yml
+worker node 구성하는 main.yml 파일
+---
+# 1. K8s 컴포넌트 설치 및 버전 고정
+- name: Install K8s packages (kubeadm, kubelet, kubectl)
+  apt: name: [kubelet, kubeadm, kubectl]
 
+# 2. 기존 설정 및 네트워크 초기화 (충돌 방지)
+- name: Reset existing worker configurations
+  command: kubeadm reset -f
+
+# 3. 로컬에 저장된 Join 명령어(토큰) 로드
+- name: Load saved join command from control node
+  local_action: slurp src=/tmp/k8s_join_command.sh
+
+# 4. 마스터 노드 클러스터에 합류 (Join)
+- name: Execute join command to join cluster
+  command: "{{ join_command_file.content | b64decode }}"
+
+```
+---
 ```
 # roles/harbor/tasks/main.yml
 
 Harbor Role은 필수 패키지 설치 후 설정 파일을 배포하여 Private Container Registry 환경을 자동 구성한다.
 
----
-# Harbor 설치에 필요한 패키지 설치
-- name: Install harbor dependencies
-  apt:
-    name:
-      - curl
-      - wget
-      - docker-compose-plugin
-    state: present
+# 1. 호스트 환경 설정 및 IP 등록
+- name: Clear machine-id & Set hostname
+  hostname: name: harbor-server
 
+- name: Configure /etc/hosts file
+  blockinfile: path: /etc/hosts block: "{{ master_ip }} k8s-master ..."
 
-# Harbor 설치 디렉토리 생성
-- name: Create harbor directory
-  file:
-    path: /opt/harbor
-    state: directory
+# 2. Docker 및 docker-compose 설치
+- name: Install Docker and Compose plugin
+  apt: name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
 
+- name: Enable Docker service & Add user to docker group
+  systemd: name: docker enabled: true
 
-# Harbor 설정 파일 배포
-- name: Copy harbor config
-  copy:
-    src: harbor.yml
-    dest: /opt/harbor/harbor.yml
+# 3. Harbor용 자체서명 TLS 인증서(OpenSSL) 생성
+- name: Create certificate directory & Generate Root CA
+  command: openssl req -x509 -new -nodes -days 3650 ...
 
+- name: Generate and Sign Harbor Server Certificate (with SAN IP)
+  command: openssl x509 -req -extfile v3.ext -CA ca.crt ...
 
-```
----
+# 4. Harbor 설치 파일 다운로드 및 압축 해제
+- name: Download Harbor offline installer and extract
+  unarchive: src: /tmp/harbor-offline-installer.tgz dest: /opt
 
-```
-# roles/docker/tasks/main.yml
+# 5. 설정 파일 배포 (Jinja2 템플릿 사용)
+- name: Generate harbor.yml configuration file
+  template: src: harbor.yml.j2 dest: "{{ harbor_install_dir }}/harbor.yml"
 
-Docker Role은 서버에 Docker를 설치하고 서비스 실행 상태를 유지하도록 자동 구성한다.
+# 6. Harbor 설치 스크립트 실행
+- name: Execute Harbor install script
+  command: "./install.sh" chdir="{{ harbor_install_dir }}"
 
----
-# Docker 패키지 설치
-- name: Install Docker
-  apt:
-    name:
-      - docker.io
-    state: present
-
-
-# Docker 서비스 실행 및 부팅 자동 시작 설정
-- name: Start Docker Service
-  service:
-    name: docker
-    state: started
-    enabled: yes
-
-
-```
----
-
-```
-# roles/database/tasks/main.yml
-
-Database Role은 서비스별 Task를 분리하여 PostgreSQL, Redis, Kafka 환경을 자동 구성한다.
-
----
-# PostgreSQL 설치 및 설정
-- name: Install PostgreSQL
-  import_tasks: postgres.yml
-
-
-# Redis 설치 및 설정
-- name: Install Redis
-  import_tasks: redis.yml
-
-
-# Kafka 설치 및 설정
-- name: Install Kafka
-  import_tasks: kafka.yml
 ```
 ---
 
