@@ -237,6 +237,87 @@ Harbor Role은 필수 패키지 설치 후 설정 파일을 배포하여 Private
 ```
 ---
 
+```
+# roles/gitlab-runner/tasks/main.yml
+
+gitlab-runner Role은 배포의 파이프 라인을 형성한다.
+---
+# tasks file for roles/gitlab-runner
+- name: Install GitLab Runner dependencies
+  apt:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg
+    state: present
+    update_cache: yes
+
+
+- name: Add GitLab Runner repository script
+  shell: |
+    curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | bash
+  args:
+    creates: /etc/apt/sources.list.d/runner_gitlab-runner.list
+
+
+- name: Install GitLab Runner
+  apt:
+    name: gitlab-runner
+    state: present
+    update_cache: yes
+
+
+- name: Enable GitLab Runner service
+  systemd:
+    name: gitlab-runner
+    enabled: yes
+    state: started
+```
+---
+
+---
+```
+# roles/gitlab/tasks/main.yml
+
+Ansible 을 이용하여 CI/CD의 핵심인 GitLab 서버를 구축한다.
+---
+- name: Load gitlab variables
+  include_vars:
+    file: ../../../group_vars/all.yml
+
+
+- name: Install GitLab dependencies
+  apt:
+    name:
+      - curl
+      - openssh-server
+      - ca-certificates
+      - tzdata
+    state: present
+    update_cache: yes
+
+
+- name: Add GitLab repository
+  shell: |
+    curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | bash
+
+
+- name: Install GitLab
+  apt:
+    name: gitlab-ee
+    state: present
+
+
+- name: Configure GitLab external url
+  lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "^external_url"
+    line: "external_url 'http://10.1.201.127'"
+  notify:
+    - Reconfigure GitLab
+
+```
+---
 **inbentory 코드 예시**
 네트워크 구성 끝나면 바로 작성 할 것
 
