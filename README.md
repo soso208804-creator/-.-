@@ -106,244 +106,49 @@ ansible-infra/
     └── gitlab-runner/
 
 ```
----
-**playbooks/site.yml 코드 예시**
+roles 파일 구성
+각 서버의 role은 tasks, handlers, templates 으로 이루어 져있다
+tasks은 ~~~
+handlers은 ~~~
+templates 은 ~~~ 의 역할을 한다.
+
+특히 tasks 의 main.yml은 
 
 ```
-전체 인프라 구축의 실행 진입점으로, 서버 환경에 필요한 Role을 순서대로 호출하여
-Kubernetes, Harbor 등의 구성 작업을 자동 실행한다.
-DB는 사전에 구성해서 제외한다.
+1. 사전 준비
+   - apt update
+   - 필요한 패키지 설치
+   - 사용자/디렉터리 생성
 
-순서
- 1. GitLab 서버 구성
- 2. GitLab Runner 구성
- 3. Harbor 설치
- 4. K8s 공통 설정 (containerd, swap, sysctl)
- 5. K8s Master init
- 6. K8s Worker join
- 7. CI/CD 배포 테스트 -> build 테스트 까지 
+2. 프로그램 설치
+   - Docker
+   - Kubernetes
+   - GitLab 등
 
-- name: GitLab 서버 구성 (10.1.201.127)
-  hosts: management
-  become: true
-  roles:
-    - gitlab
+3. 설정 적용
+   - template
+   - copy
+   - lineinfile
 
-- name: GitLab Runner 구성
-  hosts: management
-  become: true
-  roles:
-    - gitlab-runner
+4. 서비스 시작/활성화
+   - systemd
+   - service
 
-
-- name: Harbor 서버 구성 (192.168.159.122)
-  hosts: harbor
-  become: true
-  roles:
-    - harbor
-
-
-- name: K8s 노드 공통 설정 (마스터+워커, containerd/swap/sysctl)
-  hosts: k8s_cluster
-  become: true
-  roles:
-    - common
-
-
-- name: K8s 마스터 노드 구성 (192.168.159.120)
-  hosts: master
-  become: true
-  roles:
-    - k8s-master
-
-
-- name: K8s 워커 노드 구성 및 클러스터 join (192.168.159.121)
-  hosts: worker
-  become: true
-  roles:
-    - k8s-worker
-
+5. 검증(선택)
+   - 서비스 상태 확인
+   - 명령 실행 확인
 ```
+
+위의 과정을 기본 구조로 정하고 작성하였다.
+자세한 코드 설명은 아래의 notion 링크에 정리하였으니 참고 하면된다.
+[Ansible 작업 기록](https://app.notion.com/p/Ansible-390a48359dbb80f78483d187e0ede9c0?source=copy_link)
+
+
+
+
+
 ---
 
-**roles 코드 예시**
-
-```
-# roles/k8s-master/main.yml
-Master 구성하는 main.yml 파일
----
-# 1. K8s 컴포넌트 설치 및 버전 고정
-- name: Install K8s packages (kubeadm, kubelet, kubectl)
-  apt: name: [kubelet, kubeadm, kubectl]
-
-# 2. 기존 클러스터 흔적 및 네트워크 초기화 (충돌 방지)
-- name: Reset existing cluster configurations
-  command: kubeadm reset -f
-
-# 3. 마스터 노드 초기화 및 클러스터 생성
-- name: Initialize K8s master node
-  command: kubeadm init --apiserver-advertise-address={{ master_ip }}
-
-# 4. 일반 사용자용 kubeconfig 설정
-- name: Configure kubeconfig for ansible_user
-  copy: src: /etc/kubernetes/admin.conf dest: ~/.kube/config
-
-# 5. Pod 네트워크(Calico CNI) 배포
-- name: Deploy Calico CNI network plugin
-  command: kubectl apply -f {{ calico_manifest_url }}
-
-# 6. Worker 노드 추가용 Join 명령어 생성 및 저장
-- name: Generate and save worker node join command
-  command: kubeadm token create --print-join-command
-
-# 7. 사설 Harbor 인증서 등록 디렉토리 생성
-- name: Create Harbor CA certificate directory
-  file: path: /usr/local/share/ca-certificates/harbor
-
-```
----
-```
-# roles/k8s-master/main.yml
-worker node 구성하는 main.yml 파일
----
-# 1. K8s 컴포넌트 설치 및 버전 고정
-- name: Install K8s packages (kubeadm, kubelet, kubectl)
-  apt: name: [kubelet, kubeadm, kubectl]
-
-# 2. 기존 설정 및 네트워크 초기화 (충돌 방지)
-- name: Reset existing worker configurations
-  command: kubeadm reset -f
-
-# 3. 로컬에 저장된 Join 명령어(토큰) 로드
-- name: Load saved join command from control node
-  local_action: slurp src=/tmp/k8s_join_command.sh
-
-# 4. 마스터 노드 클러스터에 합류 (Join)
-- name: Execute join command to join cluster
-  command: "{{ join_command_file.content | b64decode }}"
-
-```
----
-```
-# roles/harbor/tasks/main.yml
-
-Harbor Role은 필수 패키지 설치 후 설정 파일을 배포하여 Private Container Registry 환경을 자동 구성한다.
-
-# 1. 호스트 환경 설정 및 IP 등록
-- name: Clear machine-id & Set hostname
-  hostname: name: harbor-server
-
-- name: Configure /etc/hosts file
-  blockinfile: path: /etc/hosts block: "{{ master_ip }} k8s-master ..."
-
-# 2. Docker 및 docker-compose 설치
-- name: Install Docker and Compose plugin
-  apt: name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
-
-- name: Enable Docker service & Add user to docker group
-  systemd: name: docker enabled: true
-
-# 3. Harbor용 자체서명 TLS 인증서(OpenSSL) 생성
-- name: Create certificate directory & Generate Root CA
-  command: openssl req -x509 -new -nodes -days 3650 ...
-
-- name: Generate and Sign Harbor Server Certificate (with SAN IP)
-  command: openssl x509 -req -extfile v3.ext -CA ca.crt ...
-
-# 4. Harbor 설치 파일 다운로드 및 압축 해제
-- name: Download Harbor offline installer and extract
-  unarchive: src: /tmp/harbor-offline-installer.tgz dest: /opt
-
-# 5. 설정 파일 배포 (Jinja2 템플릿 사용)
-- name: Generate harbor.yml configuration file
-  template: src: harbor.yml.j2 dest: "{{ harbor_install_dir }}/harbor.yml"
-
-# 6. Harbor 설치 스크립트 실행
-- name: Execute Harbor install script
-  command: "./install.sh" chdir="{{ harbor_install_dir }}"
-
-```
----
-
-```
-# roles/gitlab-runner/tasks/main.yml
-
-gitlab-runner Role은 배포의 파이프 라인을 형성한다.
----
-# tasks file for roles/gitlab-runner
-- name: Install GitLab Runner dependencies
-  apt:
-    name:
-      - curl
-      - ca-certificates
-      - gnupg
-    state: present
-    update_cache: yes
-
-
-- name: Add GitLab Runner repository script
-  shell: |
-    curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh | bash
-  args:
-    creates: /etc/apt/sources.list.d/runner_gitlab-runner.list
-
-
-- name: Install GitLab Runner
-  apt:
-    name: gitlab-runner
-    state: present
-    update_cache: yes
-
-
-- name: Enable GitLab Runner service
-  systemd:
-    name: gitlab-runner
-    enabled: yes
-    state: started
-```
----
-
-```
-# roles/gitlab/tasks/main.yml
-
-Ansible 을 이용하여 CI/CD의 핵심인 GitLab 서버를 구축한다.
----
-- name: Load gitlab variables
-  include_vars:
-    file: ../../../group_vars/all.yml
-
-
-- name: Install GitLab dependencies
-  apt:
-    name:
-      - curl
-      - openssh-server
-      - ca-certificates
-      - tzdata
-    state: present
-    update_cache: yes
-
-
-- name: Add GitLab repository
-  shell: |
-    curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | bash
-
-
-- name: Install GitLab
-  apt:
-    name: gitlab-ee
-    state: present
-
-
-- name: Configure GitLab external url
-  lineinfile:
-    path: /etc/gitlab/gitlab.rb
-    regexp: "^external_url"
-    line: "external_url 'http://10.1.201.127'"
-  notify:
-    - Reconfigure GitLab
-
-```
 ---
 **inbentory 코드 예시**
 네트워크 구성 끝나면 바로 작성 할 것
