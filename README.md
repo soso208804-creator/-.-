@@ -107,6 +107,32 @@ ansible-infra/
 
 ```
 
+**inbentory 코드 예시**
+네트워크 구성 끝나면 바로 작성 할 것
+
+```
+d
+```
+<br>
+
+**Playbook 구성**
+playbook은 Ansible의 자동화 실행 단위이며 site.yml을 메인 playbook으로 사용하여 전체 인프라 구축 과정을 순차적으로 실행한다.
+
+실행 과정은 다음과 같다.
+
+```
+1. GitLab 서버 구성
+2. GitLab Runner 구성
+3. Harbor 구성
+4. Kubernetes 공통 설정
+   - containerd 설정
+   - Swap 비활성화
+   - sysctl 설정
+5. Kubernetes Master 초기화
+6. Kubernetes Worker Join
+```
+<br>
+
 **roles 파일 구성**
 <br>
 
@@ -121,32 +147,31 @@ templates은 설정 파일 템플릿의 역할을 한다.
 특히 tasks 의 main.yml은 위에서 아래로 실행되는 작업 순서의 내용이 담긴다.
 
 ```
-1. 사전 준비
+1. 서버 기본 준비
    - apt update
-   - 필요한 패키지 설치
-   - 사용자/디렉터리 생성
+   - 의존성 패키지 설치
+   - 디렉터리 생성
 
 2. 프로그램 설치
-   - Docker
-   - Kubernetes
-   - GitLab 등
+   - Docker / Kubernetes / Harbor / GitLab 등
 
 3. 설정 적용
    - template
    - copy
    - lineinfile
 
-4. 서비스 시작/활성화
+4. 서비스 시작 및 활성화
    - systemd
    - service
 
-5. 검증(선택)
+5. 검증
+   - 버전 확인
    - 서비스 상태 확인
-   - 명령 실행 확인
 ```
 
 위의 과정을 기본 구조로 정하고 작성하였다.
 자세한 코드 설명은 아래의 notion 링크에 정리하였으니 참고 하면된다.
+<br>
 [Ansible 작업 기록](https://app.notion.com/p/Ansible-390a48359dbb80f78483d187e0ede9c0?source=copy_link)
 
 
@@ -155,13 +180,7 @@ templates은 설정 파일 템플릿의 역할을 한다.
 
 ---
 
----
-**inbentory 코드 예시**
-네트워크 구성 끝나면 바로 작성 할 것
 
-```
-d
-```
 
 # CI/CD Pipeline
 
