@@ -110,12 +110,15 @@ ansible-infra/
 **roles 파일 구성**
 <br>
 
-각 서버의 role은 tasks, handlers, templates 으로 이루어 져있다
-tasks은 ~~~
-handlers은 ~~~
-templates 은 ~~~ 의 역할을 한다.
+각 서버의 role은 tasks, handlers, templates 으로 이루어 져있다.
+<br>
+tasks은 실제 작업을 수행하는 곳,
+<br>
+handlers은 특정 Task가 변경되었을 때만 실행되는 작업,
+<br>
+templates은 설정 파일 템플릿의 역할을 한다.
 
-특히 tasks 의 main.yml은 
+특히 tasks 의 main.yml은 위에서 아래로 실행되는 작업 순서의 내용이 담긴다.
 
 ```
 1. 사전 준비
