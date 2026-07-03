@@ -172,13 +172,14 @@ templates은 설정 파일 템플릿의 역할을 한다.
 위의 과정을 기본 구조로 정하고 작성하였다.
 자세한 코드 설명은 아래의 notion 링크에 정리하였으니 참고 하면된다.
 <br>
+
 [Ansible 작업 기록](https://app.notion.com/p/Ansible-390a48359dbb80f78483d187e0ede9c0?source=copy_link)
 
+<br>
 
 
 
 
----
 
 
 
