@@ -106,7 +106,8 @@ ansible-infra/
     └── gitlab-runner/
 
 ```
-roles 파일 구성
+
+**roles 파일 구성**
 각 서버의 role은 tasks, handlers, templates 으로 이루어 져있다
 tasks은 ~~~
 handlers은 ~~~
