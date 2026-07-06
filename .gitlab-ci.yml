@@ -1,33 +1,61 @@
 stages:
   - test
   - build
+  - push
+  - deploy
 
 variables:
   IMAGE_NAME: test-app
   TAG: $CI_COMMIT_SHORT_SHA
+  HARBOR_REGISTRY: 192.168.159.122
+  HARBOR_PROJECT: library
+  FULL_IMAGE: $HARBOR_REGISTRY/$HARBOR_PROJECT/$IMAGE_NAME:$TAG
 
-# 1. CI 정상 확인용
+# --------------------
+# 1. TEST
+# --------------------
 test:
   stage: test
   tags:
     - docker
   script:
-    - echo "CI PIPELINE WORKING"
-    - echo "Runner OK"
+    - echo "CI TEST OK"
     - uname -a
-    - echo "Network independent mode"
 
-# 2. 가짜 build (외부 없음)
+# --------------------
+# 2. BUILD DOCKER IMAGE
+# --------------------
 build:
   stage: build
   tags:
     - docker
   script:
-    - echo "BUILD STAGE START"
-    - echo "No Docker build yet (network not ready)"
-    - echo "Simulating build process"
-    - mkdir -p dist
-    - echo "dummy artifact" > dist/app.txt
-  artifacts:
-    paths:
-      - dist/
+    - echo "BUILD IMAGE"
+    - docker build -t $FULL_IMAGE .
+    - docker images
+
+# --------------------
+# 3. PUSH TO HARBOR
+# --------------------
+push:
+  stage: push
+  tags:
+    - docker
+  script:
+    - echo "LOGIN HARBOR"
+    - docker login $HARBOR_REGISTRY -u $HARBOR_USER -p $HARBOR_PASSWORD
+    - echo "PUSH IMAGE"
+    - docker push $FULL_IMAGE
+
+# --------------------
+# 4. DEPLOY VIA ANSIBLE
+# --------------------
+deploy:
+  stage: deploy
+  tags:
+    - docker
+  script:
+    - echo "RUN ANSIBLE DEPLOY"
+    - ansible-playbook -i inventory.ini deploy.yml
+  only:
+    - main
