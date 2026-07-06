@@ -64,6 +64,7 @@ Pfsense으로 적용한 프로토콜
 - 방화벽
 
 **서비스 네트워크 토폴로지 구성도**
+<img width="680" height="445" alt="image" src="https://github.com/user-attachments/assets/d93229e7-7c2f-4748-9265-46a2a35bf8be" />
 
 
 
