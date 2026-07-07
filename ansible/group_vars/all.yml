@@ -1,27 +1,30 @@
 ---
-# 노드 IP 
-master_ip: 192.168.159.120
-worker_ip: 192.168.159.121
-worker2_ip: 192.168.159.123
-harbor_ip: 192.168.159.122
 
-# Kubernetes 버전 
+# ===== 노드 IP =====
+master_ip: 172.16.30.129
+worker1_ip: 172.16.30.130
+worker2_ip: 172.16.30.131
+harbor_ip: 172.16.20.128
+
+# ===== Kubernetes 버전 =====
 kubernetes_version: "1.29.0-1.1"
 kubernetes_apt_version: "v1.29"
 
-# Calico CNI 
-# 호스트 대역과 겹치지 않는 10.244.0.0/16 사용
+# ===== Calico CNI =====
+# 주의: 192.168.0.0/16은 실제 호스트 네트워크(192.168.159.0/24)와 겹치므로
+# 반드시 호스트 대역과 겹치지 않는 10.244.0.0/16 사용
 pod_network_cidr: "10.244.0.0/16"
 calico_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml"
 
-# Harbor
+# ===== Harbor =====
 harbor_version: "v2.10.1"
-harbor_hostname: "192.168.159.122"
+harbor_hostname: "172.16.20.128"
 harbor_admin_password: "Harbor12345"   # 운영 전 반드시 변경
 harbor_install_dir: "/opt/harbor"
 
-# containerd 
+# ===== containerd =====
 containerd_version: "1.7.13"
 
 # git Lab URL
-gitlab_external_url: "http://10.1.201.127"
+gitlab_external_url: "http://172.16.10.128"
+

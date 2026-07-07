@@ -23,10 +23,10 @@
     path: /etc/hosts
     marker: "# {mark} ANSIBLE MANAGED BLOCK - k8s cluster"
     block: |
-      {{ master_ip }} k8s-master
-      {{ worker_ip }} k8s-worker1
-      {{ worker2_ip }} k8s-worker2
       {{ harbor_ip }} harbor.local
+      {{ master_ip }} k8s-master
+      {{ worker1_ip }} k8s-worker1
+      {{ worker2_ip }} k8s-worker2
 
 # 3. swap 비활성화 (K8s 필수 조건) 
 - name: swap 비활성화

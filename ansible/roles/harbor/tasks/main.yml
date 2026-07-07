@@ -1,5 +1,5 @@
 ---
-# 1. machine-id, hostname 정리 (클론 충돌 방지, common role 미사용 노드라 별도 처리) 
+# ===== 1. machine-id, hostname 정리 (클론 충돌 방지, common role 미사용 노드라 별도 처리) =====
 - name: machine-id 재생성
   shell: |
     rm -f /etc/machine-id
@@ -16,10 +16,11 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK - k8s cluster"
     block: |
       {{ master_ip }} k8s-master
-      {{ worker_ip }} k8s-worker1
+      {{ worker1_ip }} k8s-worker1
+      {{ worker2_ip }} k8s-worker2
       {{ harbor_ip }} harbor.local
 
-# 2. Docker 설치 (Harbor는 docker-compose 기반으로 동작) 
+# ===== 2. Docker 설치 (Harbor는 docker-compose 기반으로 동작) =====
 - name: 필수 패키지 설치
   apt:
     name:
@@ -75,7 +76,7 @@
     groups: docker
     append: true
 
-# 3. 자체서명 TLS 인증서 생성 (Harbor용) 
+# ===== 3. 자체서명 TLS 인증서 생성 (Harbor용) =====
 - name: 인증서 저장 디렉토리 생성
   file:
     path: "{{ harbor_install_dir }}/certs"
@@ -131,7 +132,7 @@
     -out {{ harbor_install_dir }}/certs/{{ harbor_ip }}.crt
   when: not ca_key_exists.stat.exists
 
-# 4. Harbor 설치 파일 다운로드 
+# ===== 4. Harbor 설치 파일 다운로드 =====
 - name: 기존 Harbor 설치 파일 확인
   stat:
     path: "{{ harbor_install_dir }}/harbor.yml"
@@ -150,13 +151,13 @@
     remote_src: true
   when: not harbor_installed.stat.exists
 
-# 5. harbor.yml 설정 파일 배치 (templates/harbor.yml.j2 사용) 
+# ===== 5. harbor.yml 설정 파일 배치 (templates/harbor.yml.j2 사용) =====
 - name: harbor.yml 설정 파일 생성
   template:
     src: harbor.yml.j2
     dest: "{{ harbor_install_dir }}/harbor.yml"
 
-# 6. Harbor 설치 실행 
+# ===== 6. Harbor 설치 실행 =====
 - name: Harbor install 스크립트 실행
   command: "{{ harbor_install_dir }}/install.sh"
   args:
@@ -167,3 +168,4 @@
 - name: Harbor 설치 결과 출력
   debug:
     var: harbor_install_result.stdout_lines
+
